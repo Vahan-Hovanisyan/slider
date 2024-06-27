@@ -1,4 +1,4 @@
-function slider(elem, pagination = false) {
+function slider(elem, pagination = false, slideToScroll = 0) {
   const slider = document.querySelector(`[data-slider="${elem}"]`);
   const sliderList = slider.querySelector('.slider__list');
   const sliderSlides = slider.querySelectorAll('.slider__slide');
@@ -24,11 +24,11 @@ function slider(elem, pagination = false) {
 
   sliderSlides.forEach((slide) => {
     sliderButtonPrev.onclick = () => {
-      sliderList.scrollBy(-slide.offsetWidth * +slider.computedStyleMap().get('--slider-per-view')[0], 0);
+      sliderList.scrollBy(-slide.offsetWidth * (slideToScroll || +slider.computedStyleMap().get('--slider-per-view')[0]), 0);
     };
 
     sliderButtonNext.onclick = () => {
-      sliderList.scrollBy(slide.offsetWidth * +slider.computedStyleMap().get('--slider-per-view')[0], 0);
+      sliderList.scrollBy(slide.offsetWidth * (slideToScroll || +slider.computedStyleMap().get('--slider-per-view')[0]), 0);
     };
   });
 }
