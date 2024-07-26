@@ -24,14 +24,14 @@ function slider(elem, pagination = false, slideToScroll = 0) {
 
   sliderSlides.forEach((slide) => {
     sliderButtonPrev.onclick = () => {
-      sliderList.scrollTo({
+      sliderList.scrollBy({
         left: slide.offsetWidth * (slideToScroll || +slider.computedStyleMap().get('--slider-per-view')[0]) - slide.offsetWidth,
         top: 0,
       });
     };
 
     sliderButtonNext.onclick = () => {
-      sliderList.scrollTo({
+      sliderList.scrollBy({
         left: slide.offsetWidth * (slideToScroll || +slider.computedStyleMap().get('--slider-per-view')[0]) + slide.offsetWidth,
         top: 0,
       });
