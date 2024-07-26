@@ -24,11 +24,19 @@ function slider(elem, pagination = false, slideToScroll = 0) {
 
   sliderSlides.forEach((slide) => {
     sliderButtonPrev.onclick = () => {
-      sliderList.scrollBy(-slide.offsetWidth * (slideToScroll || +slider.computedStyleMap().get('--slider-per-view')[0]), 0);
+      sliderList.scrollTo({
+        left: slide.offsetWidth * (slideToScroll || +slider.computedStyleMap().get('--slider-per-view')[0]) - slide.offsetWidth,
+        top: 0,
+        behavior: 'smooth',
+      });
     };
 
     sliderButtonNext.onclick = () => {
-      sliderList.scrollBy(slide.offsetWidth * (slideToScroll || +slider.computedStyleMap().get('--slider-per-view')[0]), 0);
+      sliderList.scrollTo({
+        left: slide.offsetWidth * (slideToScroll || +slider.computedStyleMap().get('--slider-per-view')[0]) + slide.offsetWidth,
+        top: 0,
+        behavior: 'smooth',
+      });
     };
   });
 }

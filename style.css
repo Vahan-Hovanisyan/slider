@@ -34,7 +34,6 @@ body {
   transition: transform 0.4s;
   overflow: auto;
   scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
 }
 .slider__list::-webkit-scrollbar {
   display: none;
