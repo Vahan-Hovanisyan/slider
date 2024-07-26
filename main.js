@@ -27,7 +27,6 @@ function slider(elem, pagination = false, slideToScroll = 0) {
       sliderList.scrollTo({
         left: slide.offsetWidth * (slideToScroll || +slider.computedStyleMap().get('--slider-per-view')[0]) - slide.offsetWidth,
         top: 0,
-        behavior: 'smooth',
       });
     };
 
@@ -35,7 +34,6 @@ function slider(elem, pagination = false, slideToScroll = 0) {
       sliderList.scrollTo({
         left: slide.offsetWidth * (slideToScroll || +slider.computedStyleMap().get('--slider-per-view')[0]) + slide.offsetWidth,
         top: 0,
-        behavior: 'smooth',
       });
     };
   });
