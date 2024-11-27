@@ -6,7 +6,7 @@ class Slider {
       loop: false,
       autoPlay: false,
       autoPlayInterval: 3000,
-      breackpoints: {},
+      breakpoints: {},
     };
 
     this.options = Object.assign(defaultOptions, options);
@@ -16,8 +16,8 @@ class Slider {
     this.sliesPerView = this.list.querySelectorAll(
       `.slider__slide:nth-child(${this.options.perView}n+1)`,
     );
-    this.buttonPrev = this.elem.querySelector(".slider__button-prev");
-    this.buttonNext = this.elem.querySelector(".slider__button-next");
+    this.buttonPrev = document.querySelector(".slider__button-prev");
+    this.buttonNext = document.querySelector(".slider__button-next");
     this.pagination = this.elem.querySelector(".slider__pagination");
     this.paginationButtons = this.pagination.querySelectorAll(
       ".slider__pagination-button",
@@ -27,11 +27,14 @@ class Slider {
   }
 
   init() {
-    if (this.options.breackpoints) this.setBreakpoints();
+    if (this.options.breakpoints) this.setBreakpoints();
     if (this.options.loop) this.setLoop();
     if (this.options.pagination) this.setPagination();
     if (this.options.autoPlay) this.setAutoPlay();
-    this.list.style.setProperty("--slider-per-view", this.options.perView);
+
+    this.slides.forEach((slide) => {
+      slide.style.minWidth = 100 / this.options.perView + "%";
+    });
 
     this.sliesPerView.forEach((slide, index) => {
       slide.setAttribute("data-index", index);
@@ -93,23 +96,9 @@ class Slider {
   }
 
   setAutoPlay() {
-    let interval = null;
+    let interval;
 
-    interval = setInterval(() => {
-      this.list.scrollBy({
-        left: this.list.offsetWidth,
-        top: 0,
-        behavior: "smooth",
-      });
-
-      if (this.options.loop) this.setLoop();
-    }, this.options.autoPlayInterval);
-
-    this.elem.onmouseenter = () => {
-      clearInterval(interval);
-    };
-
-    this.elem.onmouseleave = () => {
+    const startAutoPlay = () => {
       interval = setInterval(() => {
         this.list.scrollBy({
           left: this.list.offsetWidth,
@@ -117,45 +106,41 @@ class Slider {
           behavior: "smooth",
         });
 
-        if (this.options.loop) this.setLoop();
+        if (this.options.loop) {
+          this.setLoop();
+        }
       }, this.options.autoPlayInterval);
     };
+
+    const stopAutoPlay = () => {
+      clearInterval(interval);
+    };
+
+    startAutoPlay();
+
+    this.elem.addEventListener("mouseenter", stopAutoPlay);
+    this.elem.addEventListener("mouseleave", startAutoPlay);
   }
 
   setLoop() {
-    if (this.list.style.scrollBehavior === "smooth") {
-      this.list.style.scrollBehavior = "auto";
+    const { style, scrollWidth, scrollLeft, offsetWidth } = this.list;
+
+    if (style.scrollBehavior === "smooth") {
+      style.scrollBehavior = "auto";
     }
-    if (
-      this.list.scrollWidth ===
-      this.list.scrollLeft + this.list.offsetWidth
-    ) {
+
+    if (scrollLeft + offsetWidth >= scrollWidth) {
       this.list.scrollLeft = 0;
     }
   }
 
   setBreakpoints() {
-    const updateBreakpoint = (key) => {
-      const breakpoint = this.options.breackpoints[key];
-
-      ["perView", "loop", "pagination", "autoPlay"].forEach((setting) => {
-        if (setting in breakpoint) {
-          this.options[setting] = breakpoint[setting];
-
-          if (setting === "perView") {
-            this.sliesPerView = this.list.querySelectorAll(
-              `.slider__slide:nth-child(${this.options.perView}n+1)`,
-            );
-          }
-        }
-      });
-    };
-
-    Object.keys(this.options.breackpoints).forEach((key) => {
-      const mediaQuery = window.matchMedia(`(min-width: ${key}px)`);
-
-      if (mediaQuery.matches) {
-        updateBreakpoint(key);
+    Object.entries(this.options.breakpoints).forEach(([minWidth, settings]) => {
+      if (window.matchMedia(`(min-width: ${minWidth}px)`).matches) {
+        this.options = Object.assign(this.options, settings);
+        this.sliesPerView = this.list.querySelectorAll(
+          `.slider__slide:nth-child(${settings.perView}n+1)`,
+        );
       }
     });
   }
@@ -167,7 +152,7 @@ new Slider("slider1", {
   autoPlay: true,
   loop: true,
   autoPlayInterval: 3000,
-  breackpoints: {
+  breakpoints: {
     576: {
       perView: 2,
       loop: false,
