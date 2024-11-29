@@ -1,6 +1,7 @@
 class Slider {
   constructor(elem, options) {
     let defaultOptions = {
+      gap: 0,
       pagination: false,
       perView: 1,
       loop: false,
@@ -10,6 +11,7 @@ class Slider {
     };
 
     this.options = Object.assign(defaultOptions, options);
+    this.options2 = Object.assign(defaultOptions, options);
     this.elem = document.querySelector(`[data-slider="${elem}"]`);
     this.list = this.elem.querySelector(".slider__list");
     this.slides = this.list.querySelectorAll(".slider__slide");
@@ -24,23 +26,27 @@ class Slider {
     );
 
     this.init();
+    this.setBreakpoints();
   }
 
   init() {
-    if (this.options.breakpoints) this.setBreakpoints();
-    if (this.options.loop) this.setLoop();
-    if (this.options.pagination) this.setPagination();
-    if (this.options.autoPlay) this.setAutoPlay();
+    this.setPagination();
+    this.setAutoPlay();
+    this.setBreakpoints();
 
-    this.slides.forEach((slide) => {
-      slide.style.minWidth = 100 / this.options.perView + "%";
-    });
-
+    this.elem.style.setProperty("--per-view", this.options.perView);
+    if (this.options.perView > 1) {
+      const gap = this.options.gap / this.options.perView;
+      this.list.style.setProperty("--gap", this.options.gap - gap + "px");
+      this.list.style.gap = this.options.gap + "px";
+      console.log(gap);
+    }
     this.sliesPerView.forEach((slide, index) => {
       slide.setAttribute("data-index", index);
+      this.setObserverSlides().observe(slide);
+
       this.setSlide(this.buttonPrev, "prev", slide);
       this.setSlide(this.buttonNext, "next", slide);
-      this.setObserverSlides().observe(slide);
     });
   }
 
@@ -53,10 +59,16 @@ class Slider {
               .closest(`[data-slider]`)
               .querySelectorAll(".slider__pagination-button")
               .forEach((button) => {
-                button.classList.toggle(
-                  "slider__pagination-button--active",
-                  entry.target.dataset.index === button.dataset.index,
-                );
+                if (button.dataset.index == entry.target.dataset.index)
+                  button.classList.add("slider__pagination-button--active");
+              });
+          } else {
+            entry.target
+              .closest(`[data-slider]`)
+              .querySelectorAll(".slider__pagination-button")
+              .forEach((button) => {
+                if (button.dataset.index == entry.target.dataset.index)
+                  button.classList.remove("slider__pagination-button--active");
               });
           }
         });
@@ -75,11 +87,12 @@ class Slider {
         top: 0,
         behavior: "smooth",
       });
-      if (this.options.loop && dir === "next") this.setLoop();
+      if (dir === "next") this.setLoop();
     };
   }
 
   setPagination() {
+    if (!this.options.pagination) return;
     let index = this.options.perView;
     let count = this.slides.length / index;
     for (let i = 0; i < count; i++) {
@@ -96,6 +109,7 @@ class Slider {
   }
 
   setAutoPlay() {
+    if (!this.options.autoPlay) return;
     let interval;
 
     const startAutoPlay = () => {
@@ -106,9 +120,7 @@ class Slider {
           behavior: "smooth",
         });
 
-        if (this.options.loop) {
-          this.setLoop();
-        }
+        this.setLoop();
       }, this.options.autoPlayInterval);
     };
 
@@ -123,6 +135,7 @@ class Slider {
   }
 
   setLoop() {
+    if (!this.options.loop) return;
     const { style, scrollWidth, scrollLeft, offsetWidth } = this.list;
 
     if (style.scrollBehavior === "smooth") {
@@ -135,14 +148,40 @@ class Slider {
   }
 
   setBreakpoints() {
-    Object.entries(this.options.breakpoints).forEach(([minWidth, settings]) => {
-      if (window.matchMedia(`(min-width: ${minWidth}px)`).matches) {
-        this.options = Object.assign(this.options, settings);
-        this.sliesPerView = this.list.querySelectorAll(
-          `.slider__slide:nth-child(${settings.perView}n+1)`,
-        );
-      }
+    if (Object.keys(this.options.breakpoints).length === 0) return;
+    const breakpoints = Object.assign(this.options.breakpoints, {
+      0: { ...this.options },
     });
+    new ResizeObserver((entries) => {
+      Object.entries(breakpoints).forEach(([minWidth, settings]) => {
+        if (entries[0].contentRect.width >= +minWidth) {
+          this.slides.forEach((slide) => {
+            slide.removeAttribute("data-index");
+          });
+
+          this.list
+            .querySelectorAll(
+              `.slider__slide:nth-child(${settings.perView}n+1)`,
+            )
+            .forEach((slide, index) => {
+              slide.setAttribute("data-index", index);
+              this.setObserverSlides().observe(slide);
+            });
+          this.options = Object.assign(this.options, settings);
+          this.list.style.setProperty("--gap", 0 + "px");
+          this.list.style.gap = 0 + "px";
+          if ("gap" in settings) {
+            const gap = settings.gap / settings.perView;
+            this.list.style.setProperty("--gap", settings.gap - gap + "px");
+            this.list.style.gap = settings.gap + "px";
+            console.log(gap);
+          }
+          this.elem.style.setProperty("--per-view", settings.perView);
+          this.pagination.innerHTML = "";
+          this.setPagination();
+        }
+      });
+    }).observe(document.body);
   }
 }
 
@@ -154,12 +193,14 @@ new Slider("slider1", {
   autoPlayInterval: 3000,
   breakpoints: {
     576: {
+      gap: 30,
       perView: 2,
       loop: false,
       pagination: false,
       autoPlay: false,
     },
     768: {
+      //gap: 51,
       perView: 3,
       loop: true,
       pagination: true,

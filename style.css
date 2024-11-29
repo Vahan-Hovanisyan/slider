@@ -13,20 +13,25 @@ body {
 .slider__list {
   display: flex;
   align-items: center;
-  /*gap: 10px;*/
+  /*gap: 51px;*/
   height: 90%;
   list-style: none;
   padding: 0;
   margin: 0;
-  transition: transform 0.4s;
   overflow: auto;
   scroll-snap-type: x mandatory;
+  scrollbar-width: none;
 }
-.slider__list::-webkit-scrollbar {
+.slider__list::-webkit-scrollbar,
+.slider__list::-moz-scrollbar,
+.slider__list::-ms-scrollbar,
+.slider__list::-o-scrollbar,
+.slider__list::-khtml-scrollbar {
   display: none;
 }
 
 .slider__slide {
+  min-width: calc(100% / var(--per-view) - var(--gap, 0px));
   height: 100%;
   scroll-snap-align: start;
   font-size: 25px;
